@@ -15,7 +15,7 @@ use vulkano::sampler::{Filter, MipmapMode, Sampler, SamplerAddressMode};
 
 use crate::{Error, GpuCache, Section};
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct Vertex {
     tl: [f32; 2],
     br: [f32; 2],
@@ -54,7 +54,7 @@ pub(crate) struct Draw {
     pipe: Pipeline,
     vbuf: CpuBufferPool<Vertex>,
     ubuf: CpuBufferPool<vs::ty::Data>,
-    pool: FixedSizeDescriptorSetsPool<Pipeline>,
+    pool: FixedSizeDescriptorSetsPool,
     sampler: Arc<Sampler>,
     ibuf: CpuBufferPool<DrawIndirectCommand>,
 }
@@ -83,7 +83,9 @@ impl Draw {
         let ubuf = CpuBufferPool::new(Arc::clone(device), BufferUsage::uniform_buffer());
         let ibuf = CpuBufferPool::new(Arc::clone(device), BufferUsage::indirect_buffer());
 
-        let pool = FixedSizeDescriptorSetsPool::new(Arc::clone(&pipe), 0);
+        let pool = FixedSizeDescriptorSetsPool::new(
+            pipe.layout().descriptor_set_layout(0).unwrap().clone(),
+        );
 
         let sampler = Sampler::new(
             Arc::clone(device),
